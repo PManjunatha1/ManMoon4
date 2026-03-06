@@ -128,7 +128,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCfM85FQhBDmonkh4w57rAfpwNB9afXLdQ",
@@ -144,24 +144,31 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = function() {
-      if (typeof Razorpay === 'undefined') {
-        alert('Payment service is loading. Please try again.');
-        return;
-      }
-      
+    window.initiatePayment = async function() {
       const userId = localStorage.getItem('userId');
+      const sessionToken = localStorage.getItem('sessionToken');
       const userEmail = localStorage.getItem('userEmail');
       const userName = localStorage.getItem('userName');
 
-      if (!userId) {
-        alert('Please sign in first');
+      if (!userId || !sessionToken) {
+        alert('Session expired. Please sign in again.');
         window.location.href = 'signin.html';
         return;
       }
 
+      if (!userEmail || !userName) {
+        alert('User data incomplete. Please sign in again.');
+        window.location.href = 'signin.html';
+        return;
+      }
+
+      if (typeof Razorpay === 'undefined') {
+        alert('Payment service is loading. Please try again.');
+        return;
+      }
+
       const options = {
-        key: 'rzp_test_SNy7ScUUDyMkj8',
+        key: 'rzp_live_YOUR_ACTUAL_KEY',
         amount: 10000,
         currency: 'INR',
         name: 'ManMoon',
@@ -186,7 +193,7 @@
               window.location.href = 'dashboard.html';
             }, 500);
           } catch (error) {
-            console.error('Error:', error);
+            console.error('Payment error:', error);
             alert('Payment recorded. Redirecting...');
             setTimeout(() => {
               window.location.href = 'dashboard.html';
