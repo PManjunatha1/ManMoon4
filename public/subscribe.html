@@ -125,6 +125,7 @@
     </div>
   </footer>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -144,9 +145,15 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = function() {
+    window.initiatePayment = async function() {
+      let attempts = 0;
+      while (typeof Razorpay === 'undefined' && attempts < 10) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+      }
+      
       if (typeof Razorpay === 'undefined') {
-        alert('Payment service is loading. Please try again.');
+        alert('Payment service unavailable. Please refresh and try again.');
         return;
       }
       
