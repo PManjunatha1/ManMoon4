@@ -125,7 +125,6 @@
     </div>
   </footer>
 
-  <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -145,15 +144,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = async function() {
-      let attempts = 0;
-      while (typeof Razorpay === 'undefined' && attempts < 10) {
-        await new Promise(r => setTimeout(r, 100));
-        attempts++;
-      }
-      
+    window.initiatePayment = function() {
       if (typeof Razorpay === 'undefined') {
-        alert('Payment service unavailable. Please refresh and try again.');
+        alert('Payment service is loading. Please try again.');
         return;
       }
       
@@ -168,7 +161,7 @@
       }
 
       const options = {
-        key: 'rzp_live_YOUR_ACTUAL_KEY',
+        key: 'rzp_test_SNy7ScUUDyMkj8',
         amount: 10000,
         currency: 'INR',
         name: 'ManMoon',
@@ -176,9 +169,6 @@
         prefill: {
           name: userName,
           email: userEmail
-        },
-        notes: {
-          userId: userId
         },
         handler: async function(response) {
           try {
