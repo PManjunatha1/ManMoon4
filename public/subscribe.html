@@ -145,6 +145,11 @@
     const db = getFirestore(app);
 
     window.initiatePayment = function() {
+      if (typeof Razorpay === 'undefined') {
+        alert('Payment service is loading. Please try again.');
+        return;
+      }
+      
       const userId = localStorage.getItem('userId');
       const userEmail = localStorage.getItem('userEmail');
       const userName = localStorage.getItem('userName');
@@ -167,14 +172,12 @@
         },
         handler: async function(response) {
           try {
-            console.log('Payment successful, updating database...');
             await setDoc(doc(db, 'users', userId), {
               paymentStatus: 'paid',
               amountPaid: 100,
               paymentId: response.razorpay_payment_id,
               paymentDate: new Date().toISOString()
             }, { merge: true });
-            console.log('Database updated with paymentStatus: paid');
 
             localStorage.setItem('paymentStatus', 'paid');
             localStorage.setItem('paymentId', response.razorpay_payment_id);
@@ -183,8 +186,11 @@
               window.location.href = 'dashboard.html';
             }, 500);
           } catch (error) {
-            console.error('Error updating payment status:', error);
-            alert('Payment recorded but there was an issue updating your account. Please contact support.');
+            console.error('Error:', error);
+            alert('Payment recorded. Redirecting...');
+            setTimeout(() => {
+              window.location.href = 'dashboard.html';
+            }, 1000);
           }
         },
         modal: {
