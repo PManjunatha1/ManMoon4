@@ -144,16 +144,19 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = function() {
-      const userId = localStorage.getItem('userId');
-      const userEmail = localStorage.getItem('userEmail');
-      const userName = localStorage.getItem('userName');
+    window.initiatePayment = async function() {
+      const userId = auth.currentUser?.uid;
 
       if (!userId) {
         alert('Please sign in first');
         window.location.href = 'signin.html';
         return;
       }
+
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userData = userDoc.data();
+      const userEmail = userData?.email || '';
+      const userName = userData?.name || '';
 
       const options = {
         key: 'rzp_test_SNy7ScUUDyMkj8',
@@ -167,7 +170,6 @@
         },
         handler: async function(response) {
           try {
-            console.log('Payment successful, updating database...');
             await setDoc(doc(db, 'users', userId), {
               paymentStatus: 'paid',
               amountPaid: 100,
