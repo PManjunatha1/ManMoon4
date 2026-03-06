@@ -174,10 +174,6 @@
               paymentId: response.razorpay_payment_id,
               paymentDate: new Date().toISOString()
             }, { merge: true });
-            console.log('Database updated with paymentStatus: paid');
-
-            localStorage.setItem('paymentStatus', 'paid');
-            localStorage.setItem('paymentId', response.razorpay_payment_id);
             alert('Payment successful! Welcome to ManMoon.');
             setTimeout(() => {
               window.location.href = 'dashboard.html';
