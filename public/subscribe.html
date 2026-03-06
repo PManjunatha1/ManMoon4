@@ -127,7 +127,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -144,18 +144,25 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = async function() {
-      const userId = auth.currentUser?.uid;
+    let currentUser = null;
 
-      if (!userId) {
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (!user) {
+        window.location.href = 'signin.html';
+      }
+    });
+
+    window.initiatePayment = async function() {
+      if (!currentUser) {
         alert('Please sign in first');
         window.location.href = 'signin.html';
         return;
       }
 
-      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       const userData = userDoc.data();
-      const userEmail = userData?.email || '';
+      const userEmail = userData?.email || currentUser.email || '';
       const userName = userData?.name || '';
 
       const options = {
@@ -170,7 +177,7 @@
         },
         handler: async function(response) {
           try {
-            await setDoc(doc(db, 'users', userId), {
+            await setDoc(doc(db, 'users', currentUser.uid), {
               paymentStatus: 'paid',
               amountPaid: 100,
               paymentId: response.razorpay_payment_id,
