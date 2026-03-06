@@ -168,7 +168,7 @@
       }
 
       const options = {
-        key: 'rzp_test_SNy7ScUUDyMkj8',
+        key: 'YOUR_RAZORPAY_LIVE_KEY_ID',
         amount: 10000,
         currency: 'INR',
         name: 'ManMoon',
@@ -176,6 +176,9 @@
         prefill: {
           name: userName,
           email: userEmail
+        },
+        notes: {
+          userId: userId
         },
         handler: async function(response) {
           try {
