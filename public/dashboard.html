@@ -267,7 +267,7 @@
           return;
         }
         
-        if (!userData.paid) {
+        if (userData.paymentStatus !== 'paid') {
           window.location.replace('subscribe.html');
           return;
         }

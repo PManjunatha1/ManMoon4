@@ -377,7 +377,6 @@
           
           localStorage.setItem('userName', userData.name);
           localStorage.setItem('userEmail', userData.email);
-          localStorage.setItem('paymentStatus', userData.paymentStatus || 'unpaid');
           localStorage.setItem('userId', user.uid);
           localStorage.setItem('sessionToken', sessionToken);
           localStorage.setItem('firstSignIn', userData.firstSignIn || userData.createdAt);
@@ -385,9 +384,9 @@
           
           await setDoc(doc(db, 'users', user.uid), {...updateData, sessionToken: sessionToken});
           
-          const paymentStatus = userData.paid ? 'paid' : 'unpaid';
+          console.log('Payment Status:', userData.paymentStatus);
           alert('Welcome back, ' + userData.name + '!');
-          if (paymentStatus === 'paid') {
+          if (userData.paymentStatus === 'paid') {
             window.location.href = 'dashboard.html';
           } else {
             window.location.href = 'subscribe.html';
