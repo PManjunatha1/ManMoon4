@@ -256,7 +256,18 @@
       
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
-        if (!userDoc.data().paid) {
+        const userData = userDoc.data();
+        const storedToken = localStorage.getItem('sessionToken');
+        const dbToken = userData.sessionToken;
+        
+        if (storedToken !== dbToken) {
+          localStorage.clear();
+          alert('Your session has been invalidated. You were signed in on another device.');
+          window.location.href = 'signin.html';
+          return;
+        }
+        
+        if (!userData.paid) {
           window.location.replace('subscribe.html');
           return;
         }

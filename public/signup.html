@@ -384,7 +384,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
     import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCfM85FQhBDmonkh4w57rAfpwNB9afXLdQ",
@@ -489,6 +489,15 @@
           displayName: name
         });
         
+        const counterDoc = await getDoc(doc(db, 'system', 'userCounter'));
+        let nextId = 1;
+        if (counterDoc.exists()) {
+          nextId = counterDoc.data().count + 1;
+        }
+        const userId = String(nextId).padStart(6, '0');
+        
+        await setDoc(doc(db, 'system', 'userCounter'), { count: nextId });
+        
         await setDoc(doc(db, 'users', user.uid), {
           name: name,
           email: email,
@@ -497,6 +506,11 @@
           firstSignIn: new Date().toISOString(),
           lastSignIn: new Date().toISOString(),
           role: 'student'
+        });
+        
+        await setDoc(doc(db, 'users', user.uid, 'users', userId), {
+          userId: userId,
+          createdAt: new Date().toISOString()
         });
         
         localStorage.setItem('userName', name);

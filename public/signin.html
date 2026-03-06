@@ -385,7 +385,7 @@
           
           await setDoc(doc(db, 'users', user.uid), {...updateData, sessionToken: sessionToken});
           
-          const paymentStatus = userData.paymentStatus || 'unpaid';
+          const paymentStatus = userData.paid ? 'paid' : 'unpaid';
           alert('Welcome back, ' + userData.name + '!');
           if (paymentStatus === 'paid') {
             window.location.href = 'dashboard.html';
