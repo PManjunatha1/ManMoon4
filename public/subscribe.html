@@ -128,7 +128,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCfM85FQhBDmonkh4w57rAfpwNB9afXLdQ",
@@ -144,31 +144,19 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.initiatePayment = async function() {
+    window.initiatePayment = function() {
       const userId = localStorage.getItem('userId');
-      const sessionToken = localStorage.getItem('sessionToken');
       const userEmail = localStorage.getItem('userEmail');
       const userName = localStorage.getItem('userName');
 
-      if (!userId || !sessionToken) {
-        alert('Session expired. Please sign in again.');
+      if (!userId) {
+        alert('Please sign in first');
         window.location.href = 'signin.html';
-        return;
-      }
-
-      if (!userEmail || !userName) {
-        alert('User data incomplete. Please sign in again.');
-        window.location.href = 'signin.html';
-        return;
-      }
-
-      if (typeof Razorpay === 'undefined') {
-        alert('Payment service is loading. Please try again.');
         return;
       }
 
       const options = {
-        key: 'rzp_live_YOUR_ACTUAL_KEY',
+        key: 'rzp_test_SNy7ScUUDyMkj8',
         amount: 10000,
         currency: 'INR',
         name: 'ManMoon',
@@ -179,12 +167,14 @@
         },
         handler: async function(response) {
           try {
+            console.log('Payment successful, updating database...');
             await setDoc(doc(db, 'users', userId), {
               paymentStatus: 'paid',
               amountPaid: 100,
               paymentId: response.razorpay_payment_id,
               paymentDate: new Date().toISOString()
             }, { merge: true });
+            console.log('Database updated with paymentStatus: paid');
 
             localStorage.setItem('paymentStatus', 'paid');
             localStorage.setItem('paymentId', response.razorpay_payment_id);
@@ -193,11 +183,8 @@
               window.location.href = 'dashboard.html';
             }, 500);
           } catch (error) {
-            console.error('Payment error:', error);
-            alert('Payment recorded. Redirecting...');
-            setTimeout(() => {
-              window.location.href = 'dashboard.html';
-            }, 1000);
+            console.error('Error updating payment status:', error);
+            alert('Payment recorded but there was an issue updating your account. Please contact support.');
           }
         },
         modal: {
