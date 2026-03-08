@@ -6,7 +6,7 @@
   <meta name="description" content="Subscribe to ManMoon - Complete Android Development Learning Package">
   <meta name="robots" content="noindex, nofollow">
   <title>Subscribe - ManMoon Learning Platform</title>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://sdk.cashfree.com/js/core/cashfree.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #F0FDF4; color: #052E16; min-height: 100vh; transition: background 0.3s, color 0.3s; }
@@ -114,7 +114,7 @@
         By proceeding with payment, you agree to our <a href="terms.html" target="_blank">Terms of Service</a> and <a href="refund.html" target="_blank">Refund Policy</a>. Please read them carefully before purchasing.
       </div>
 
-      <button class="pay-btn" onclick="initiatePayment()">💳 Pay ₹100 with Razorpay</button>
+      <button class="pay-btn" onclick="initiatePayment()">💳 Pay ₹100 with Cashfree</button>
     </div>
   </div>
 
@@ -124,8 +124,6 @@
       <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a> | <a href="refund.html">Refund Policy</a> | <a href="contact.html">Contact Support</a> | <a href="about.html">About Us</a>
     </div>
   </footer>
-
-  <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -155,25 +153,10 @@
       }
     });
 
-    async function waitForRazorpay() {
-      let attempts = 0;
-      while (typeof Razorpay === 'undefined' && attempts < 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-      return typeof Razorpay !== 'undefined';
-    }
-
     window.initiatePayment = async function() {
       if (!currentUser) {
         alert('Please sign in first');
         window.location.href = 'signin.html';
-        return;
-      }
-
-      const razorpayLoaded = await waitForRazorpay();
-      if (!razorpayLoaded) {
-        alert('Payment service is loading. Please try again.');
         return;
       }
 
@@ -182,42 +165,32 @@
       const userEmail = userData?.email || currentUser.email || '';
       const userName = userData?.name || '';
 
-      const options = {
-        key: 'rzp_test_SNy7ScUUDyMkj8',
-        amount: 10000,
-        currency: 'INR',
-        name: 'ManMoon',
-        description: 'Complete Learning Package - ₹100',
-        prefill: {
-          name: userName,
-          email: userEmail
-        },
-        handler: async function(response) {
-          try {
-            await setDoc(doc(db, 'users', currentUser.uid), {
-              paymentStatus: 'paid',
-              amountPaid: 100,
-              paymentId: response.razorpay_payment_id,
-              paymentDate: new Date().toISOString()
-            }, { merge: true });
-            alert('Payment successful! Welcome to ManMoon.');
-            setTimeout(() => {
-              window.location.href = 'dashboard.html';
-            }, 500);
-          } catch (error) {
-            console.error('Error updating payment status:', error);
-            alert('Payment recorded but there was an issue updating your account. Please contact support.');
-          }
-        },
-        modal: {
-          ondismiss: function() {
-            console.log('Payment cancelled');
-          }
-        }
-      };
+      try {
+        const response = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: 100,
+            email: userEmail,
+            name: userName,
+            userId: currentUser.uid
+          })
+        });
 
-      const rzp = new Razorpay(options);
-      rzp.open();
+        const data = await response.json();
+        
+        if (data.sessionId) {
+          Cashfree.checkout({
+            paymentSessionId: data.sessionId,
+            redirectTarget: '_self'
+          });
+        } else {
+          alert('Failed to initiate payment. Please try again.');
+        }
+      } catch (error) {
+        console.error('Payment error:', error);
+        alert('Payment service error. Please try again.');
+      }
     };
   </script>
 
